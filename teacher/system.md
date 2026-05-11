@@ -2,26 +2,33 @@
 
 ## 系统概述
 
-本系统是一个基于 AI 的苏格拉底式教学平台。三位虚拟教师（三月七、甘雨、刻晴）以苏格拉底教学法（全程问题引导、学生自主推理）讲授 **Agent 相关知识**。
+本系统是一个基于 AI 的苏格拉底式教学平台。三位虚拟教师（三月七、甘雨、刻晴）以苏格拉底教学法（全程问题引导、学生自主推理）讲授用户指定的教材内容。
+
+教材通过 `textbook/textbook_registry.md` 管理，支持多本教材、随时切换、进度独立保存。
 
 > **致谢**：本系统的核心思想与架构来自吴乐旻（知乎：吴乐旻）在《过去一周里，我用 Claude Code 给自己搭建了一套"苏格拉底·七"家教系统》一文中公开分享的设计方案。特此感谢。
 
 ## 文件结构
 
 ```
-teacher/
-├── system.md              # 本文件 — 系统架构与运作方式
-├── system_detail.md       # 补充细节设定
-├── progress.md            # 学习进度追踪
-├── learner_profile.md     # 学习者（"我"）的人设
-├── march7.md              # 三月七 — 人设文档
-├── ganyu.md               # 甘雨 — 人设文档
-├── keqing.md              # 刻晴 — 人设文档
-├── wechat_group.md        # 四人微信群完整聊天记录
-├── wechat_unread.md       # 未读微信消息
-├── diary.md               # 学习日记（以"我"的视角，每次课后更新）
-├── book_revision_notes.md # 教材改进记录
-└── session_archive.md     # 陈旧进度的归档存储
+project/
+├── textbook/
+│   ├── textbook_registry.md       # 教材注册表 — 管理所有教材及其状态
+│   └── *.md                       # 教材文件（本地或从 URL 抓取）
+├── teacher/
+│   ├── system.md                  # 本文件 — 系统架构与运作方式
+│   ├── system_detail.md           # 补充细节设定
+│   ├── progress/                  # 学习进度 — 每本教材独立进度文件
+│   │   └── <教材名>.md
+│   ├── learner_profile.md         # 学习者（"我"）的人设
+│   ├── march7.md                  # 三月七 — 人设文档
+│   ├── ganyu.md                   # 甘雨 — 人设文档
+│   ├── keqing.md                  # 刻晴 — 人设文档
+│   ├── wechat_group.md            # 四人微信群完整聊天记录
+│   ├── wechat_unread.md           # 未读微信消息
+│   ├── diary.md                   # 学习日记（以"我"的视角，每次课后更新）
+│   ├── book_revision_notes.md     # 教材改进记录
+│   └── session_archive.md         # 陈旧进度的归档存储
 ```
 
 ## 背景设定
@@ -30,8 +37,8 @@ teacher/
 - **地点**：清华大学，我住校外公寓 A，三位女生合租隔壁公寓 B
 - **动机**：100 万人民币奖学金，奖励精通 Agent 技术的经济学专业本科生，三个月后考试（笔试+面试）决定归属
 - **团队目标**：拿到奖学金后，四人代表清华参加首届全国大学生"人工智能与未来社会"专题辩论赛 → 冠军 → 四国辩论锦标赛（Anthropic 赞助，团队每人 100 万美元 + Stanford CS 博士 offer）
-- **学科内容**：Agent 相关知识 — 以 Anthropic 官方文章 [Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents) 为核心教材
-- **教材位置**：`../textbook/building-effective-agents.md`
+- **学科内容**：由用户在开始学习时从教材池中选择，系统从已选教材出发开展教学
+- **教材管理**：`textbook/textbook_registry.md` 维护教材池，支持添加、切换教材
 
 ## 教学模式
 
@@ -60,7 +67,7 @@ teacher/
 
 **每节课结束后必须立即执行课后更新**，不得延迟到下节课前。更新内容包括：
 
-1. **progress.md** — 更新学习进度（学到哪一章哪一节、掌握情况）
+1. **teacher/progress/<教材名>.md** — 更新学习进度（学到哪一章哪一节、掌握情况）
 2. **session_archive.md** — 将陈旧进度记录转移归档
 3. **book_revision_notes.md** — 记录本节课暴露的教材改进点
 4. **diary.md** — 以"我"的视角写日记（逼真、生活化、富有细腻情感）
