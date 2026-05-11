@@ -1,0 +1,6 @@
+.env
+web/backups/
+web/conversations/
+__pycache__/
+*.pyc
+.DS_Store
