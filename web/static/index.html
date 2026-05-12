@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>苏格拉底·七</title>
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+QingKe+HuangYou&family=Noto+Serif+SC:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page: #f5f0e8;
+  --page-light: #faf7f0;
+  --page-dark: #e8dcc8;
+  --surface: #ede4d3;
+  --surface-hover: #e0d4bc;
+  --leather: #4a3728;
+  --leather-light: #5c4a3a;
+  --ink: #3e3232;
+  --ink-dim: #8b7e74;
+  --ink-faint: #b8a99a;
+  --gold: #b8860b;
+  --gold-light: #d4a843;
+  --gold-glow: rgba(184, 134, 11, 0.1);
+  --border: #d4c5b2;
+  --border-light: #e0d5c5;
+  --march7: #c44d6e;
+  --march7-glow: rgba(196, 77, 110, 0.1);
+  --ganyu: #4a8c9e;
+  --ganyu-glow: rgba(74, 140, 158, 0.1);
+  --keqing: #7b5ea7;
+  --keqing-glow: rgba(123, 94, 167, 0.1);
+  --accent: var(--march7);
+  --accent-glow: var(--march7-glow);
+  --danger: #b8453a;
+  --danger-glow: rgba(184, 69, 58, 0.1);
+  --radius: 3px;
+  --radius-sm: 2px;
+  --menu-w: 160px;
+  --shadow-sm: 0 1px 3px rgba(62,50,50,0.06);
+  --shadow-md: 0 2px 8px rgba(62,50,50,0.1);
+  --shadow-lg: 0 4px 20px rgba(62,50,50,0.15);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-1%, -1%); }
+  30% { transform: translate(1%, -2%); }
+  50% { transform: translate(-2%, 1%); }
+  70% { transform: translate(2%, 1%); }
+  90% { transform: translate(-1%, 2%); }
+}
+
+body {
+  font-family: "Noto Serif SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", serif;
+  background: var(--page);
+  color: var(--ink);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Paper texture overlay */
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(139, 126, 116, 0.03) 2px,
+      rgba(139, 126, 116, 0.03) 4px
+    ),
+    radial-gradient(ellipse at 30% 20%, rgba(184, 134, 11, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 80%, rgba(139, 126, 116, 0.04) 0%, transparent 60%);
+}
+
+/* Grain animation overlay */
+body::after {
+  content: '';
+  position: fixed; inset: -50%; pointer-events: none; z-index: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  animation: grain 8s steps(10) infinite;
+}
+
+/* ── Header ── */
+header {
+  padding: 10px 24px;
+  background: linear-gradient(180deg, var(--leather), var(--leather-light));
+  border-bottom: 2px solid rgba(0,0,0,0.15);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; z-index: 10; position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.logo {
+  font-family: "ZCOOL QingKe HuangYou", cursive;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--gold-light);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.logo-dot {
+  color: var(--accent);
+  margin: 0 2px;
+  text-shadow: none;
+}
+.header-right { display: flex; align-items: center; gap: 16px; }
+#teacherBadge {
+  font-size: 13px; padding: 4px 14px; border-radius: 2px;
+  background: var(--accent-glow); color: var(--accent);
+  border: 1px solid rgba(255,255,255,0.15);
+  transition: all 0.4s ease;
+}
+#timer {
+  font-size: 13px; color: rgba(255,255,255,0.7);
+  font-variant-numeric: tabular-nums;
+  font-family: "JetBrains Mono", monospace;
+  min-width: 48px; text-align: center;
+}
+#endBtn {
+  padding: 5px 16px;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: transparent; color: rgba(255,255,255,0.8);
+  border-radius: 2px; cursor: pointer; font-size: 13px;
+  font-family: inherit;
+  transition: all 0.25s;
+}
+#endBtn:hover { background: rgba(184,69,58,0.2); border-color: var(--danger); color: var(--danger); }
+#endBtn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── Main Layout ── */
+main {
+  display: flex; flex: 1; overflow: hidden; position: relative; z-index: 1;
+}
+
+/* ── Left Menu ── */
+.left-menu {
+  width: var(--menu-w); background: linear-gradient(90deg, rgba(232,220,200,0.6), rgba(237,228,211,0.4));
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  flex-shrink: 0; overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.menu-tabs {
+  display: flex; flex-direction: column;
+  padding: 12px 0; gap: 2px; flex: 1;
+}
+.menu-tab {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; font-size: 14px; cursor: pointer;
+  border: none; background: transparent; color: var(--ink-dim);
+  font-family: inherit;
+  transition: all 0.2s;
+  text-align: left;
+  border-left: 3px solid transparent;
+}
+.menu-tab:hover { color: var(--ink); background: var(--surface-hover); }
+.menu-tab.active {
+  color: var(--ink);
+  background: linear-gradient(90deg, var(--surface), transparent);
+  border-left-color: var(--gold);
+  font-weight: 700;
+}
+.menu-tab .tab-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+.menu-tab .tab-label { white-space: nowrap; }
+
+/* ── Panel Content (drawer between menu and chat) ── */
+.panel-content-wrapper {
+  width: 0; overflow: hidden;
+  background: var(--page-light);
+  border-right: 1px solid transparent;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
+  flex-shrink: 0;
+  display: flex; flex-direction: column;
+}
+.panel-content-wrapper.open {
+  width: 340px;
+  border-right-color: var(--border);
+}
+.panel-content-inner {
+  width: 340px; flex: 1; overflow-y: auto; padding: 16px 20px;
+  font-size: 14px; line-height: 1.8;
+}
+.panel-content-inner::-webkit-scrollbar { width: 4px; }
+.panel-content-inner::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.panel-content-inner h2 { font-size: 17px; color: var(--gold); margin: 16px 0 8px; font-weight: 700; }
+.panel-content-inner h3 { font-size: 15px; color: var(--accent); margin: 12px 0 6px; }
+.panel-content-inner h4 { font-size: 14px; color: var(--ink-dim); margin: 10px 0 4px; }
+.panel-content-inner hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+.panel-content-inner blockquote {
+  border-left: 3px solid var(--gold); padding-left: 12px;
+  color: var(--ink-dim); margin: 8px 0; font-style: italic;
+}
+.panel-content-inner code {
+  background: var(--page-dark); padding: 1px 6px; border-radius: 2px;
+  font-size: 12px; font-family: "JetBrains Mono", monospace; color: var(--leather);
+}
+.panel-content-inner li { margin-left: 18px; }
+.panel-content-inner table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; }
+.panel-content-inner th, .panel-content-inner td {
+  border: 1px solid var(--border); padding: 5px 8px; text-align: left;
+}
+.panel-content-inner th { background: var(--surface); color: var(--ink-dim); }
+.panel-close-btn {
+  position: sticky; top: 0; float: right;
+  background: none; border: none; font-size: 20px; cursor: pointer;
+  color: var(--ink-dim); padding: 4px 8px;
+  font-family: serif; z-index: 1;
+}
+.panel-close-btn:hover { color: var(--ink); }
+
+/* ── Chat Panel ── */
+.chat-panel {
+  flex: 1; display: flex; flex-direction: column; min-width: 0;
+  background: linear-gradient(180deg, var(--page-light), var(--page));
+  position: relative;
+}
+/* Subtle page edge shadow on the left */
+.chat-panel::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 20px;
+  background: linear-gradient(90deg, rgba(139,126,116,0.08), transparent);
+  pointer-events: none; z-index: 1;
+}
+#chatMessages {
+  flex: 1; overflow-y: auto; padding: 24px 28px;
+  display: flex; flex-direction: column; gap: 18px;
+  scroll-behavior: smooth;
+}
+#chatMessages::-webkit-scrollbar { width: 5px; }
+#chatMessages::-webkit-scrollbar-track { background: transparent; }
+#chatMessages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.message {
+  max-width: 75%; padding: 16px 20px;
+  line-height: 1.8; font-size: 15px;
+  position: relative;
+  animation: msgIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.message.user {
+  align-self: flex-end;
+  background: linear-gradient(135deg, var(--surface), var(--page-dark));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  border-bottom-right-radius: 0;
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+}
+.message.assistant {
+  align-self: flex-start;
+  background: linear-gradient(135deg, #fdfaf4, #f8f3e8);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  border-bottom-left-radius: 0;
+  box-shadow: var(--shadow-md);
+  color: var(--ink);
+}
+/* Teacher accent strip on assistant messages */
+.message.assistant::before {
+  content: ''; position: absolute; top: 0; left: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  opacity: 0.4;
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+.message .inner-thought {
+  color: var(--ink-faint); font-style: italic; opacity: 0.85;
+}
+.message strong { color: var(--gold); font-weight: 700; }
+
+/* ── Input ── */
+.input-area {
+  padding: 14px 24px;
+  background: linear-gradient(0deg, var(--surface), var(--page-light));
+  border-top: 1px solid var(--border);
+  display: flex; gap: 10px; flex-shrink: 0; z-index: 2;
+}
+#messageInput {
+  flex: 1; padding: 12px 16px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--page-light); color: var(--ink);
+  font-size: 15px; outline: none; resize: none;
+  font-family: inherit;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+#messageInput::placeholder { color: var(--ink-faint); }
+#messageInput:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-glow);
+}
+#messageInput:disabled { opacity: 0.4; background: var(--page-dark); }
+#sendBtn {
+  padding: 10px 24px; border: none; border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 75%, #3e3232));
+  color: #fff; font-size: 15px; cursor: pointer; font-weight: 600;
+  font-family: inherit;
+  transition: all 0.25s; flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+#sendBtn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px var(--accent-glow); }
+#sendBtn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── Start Overlay ── */
+#startOverlay {
+  position: fixed; inset: 0; background: var(--page);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 100; transition: opacity 0.5s ease;
+}
+#startOverlay.hidden { opacity: 0; pointer-events: none; }
+.start-card {
+  text-align: center; padding: 48px;
+  position: relative; z-index: 1;
+  background: linear-gradient(135deg, var(--page-light), var(--page));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius);
+  max-width: 440px;
+}
+/* Decorative corner */
+.start-card::before {
+  content: '❦';
+  position: absolute; top: 12px; right: 16px;
+  font-size: 18px; color: var(--gold); opacity: 0.5;
+}
+.start-title {
+  font-family: "ZCOOL QingKe HuangYou", cursive;
+  font-size: 44px; letter-spacing: 4px;
+  color: var(--leather);
+  margin-bottom: 8px;
+}
+.start-subtitle {
+  font-size: 15px; color: var(--ink-dim); margin-bottom: 36px;
+  letter-spacing: 2px;
+}
+#startHint {
+  font-size: 14px; color: var(--ink-dim); margin-bottom: 28px;
+  line-height: 1.8;
+}
+#startBtn {
+  padding: 14px 56px; font-size: 18px;
+  border: 1px solid var(--gold); border-radius: 2px;
+  background: var(--page-light); color: var(--leather);
+  cursor: pointer; font-family: inherit; font-weight: 600;
+  letter-spacing: 2px;
+  transition: all 0.3s ease;
+  position: relative; overflow: hidden;
+}
+#startBtn::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at center, var(--gold-glow), transparent);
+  opacity: 0; transition: opacity 0.3s;
+}
+#startBtn:hover {
+  border-color: var(--leather);
+  color: var(--ink);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px var(--gold-glow);
+}
+#startBtn:hover::before { opacity: 1; }
+#startBtn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ── Reconnect ── */
+#reconnectBanner {
+  display: none; padding: 8px; text-align: center;
+  background: var(--gold-glow); color: var(--gold);
+  font-size: 13px; flex-shrink: 0; z-index: 5;
+  border-bottom: 1px solid var(--border);
+}
+#reconnectBanner.visible { display: block; }
+
+/* ── Confirm Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(62,50,50,0.5); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200; transition: opacity 0.3s;
+}
+.modal-overlay.hidden { opacity: 0; pointer-events: none; }
+.modal-box {
+  background: linear-gradient(135deg, var(--page-light), var(--page));
+  border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 32px 36px;
+  max-width: 380px; text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+.modal-box p { margin-bottom: 24px; line-height: 1.8; font-size: 15px; color: var(--ink); }
+.modal-buttons { display: flex; gap: 12px; justify-content: center; }
+.modal-buttons button {
+  padding: 9px 28px; border-radius: 2px;
+  font-size: 14px; cursor: pointer; font-weight: 600;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.btn-cancel {
+  background: var(--surface); color: var(--ink-dim);
+  border: 1px solid var(--border);
+}
+.btn-cancel:hover { background: var(--surface-hover); color: var(--ink); }
+.btn-confirm {
+  background: var(--danger); color: #fff; border: none;
+}
+.btn-confirm:hover { background: #a33d33; }
+.btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Mobile ── */
+.panel-mobile-toggle {
+  display: none; width: 100%; padding: 8px;
+  background: var(--surface); border: none;
+  border-top: 1px solid var(--border); color: var(--ink-dim);
+  cursor: pointer; font-size: 13px; font-family: inherit;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  main { flex-direction: column; }
+  .left-menu {
+    width: 100%; flex-shrink: 0;
+    flex-direction: row; overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .menu-tabs {
+    flex-direction: row; padding: 4px 8px; gap: 0;
+  }
+  .menu-tab {
+    flex-shrink: 0; padding: 8px 12px; font-size: 13px;
+    border-left: none; border-bottom: 3px solid transparent;
+  }
+  .menu-tab.active {
+    background: transparent;
+    border-bottom-color: var(--gold);
+    border-left-color: transparent;
+  }
+  .chat-panel { flex: 1; }
+  .message { max-width: 88%; }
+  .panel-content-wrapper {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    top: auto; height: 50vh; width: 100%;
+    border-right: none; border-top: 1px solid var(--border);
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    z-index: 50;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: visible;
+  }
+  .panel-content-wrapper.open { display: block; transform: translateY(0); width: 100%; }
+  .panel-content-inner { width: 100%; padding: 16px; }
+  .panel-mobile-toggle { display: block; }
+}
+</style>
+</head>
+<body>
+
+<!-- Start overlay -->
+<div id="startOverlay">
+  <div class="start-card">
+    <div class="start-title">苏格拉底·七</div>
+    <div class="start-subtitle">深夜研习室</div>
+    <div id="startHint"></div>
+    <button id="startBtn" onclick="startLesson()">翻开书页</button>
+  </div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="logo">苏格拉底<span class="logo-dot">·</span>七</div>
+  <div class="header-right">
+    <span id="teacherBadge" style="opacity:0.5">--</span>
+    <span id="timer">--:--</span>
+    <button id="endBtn" onclick="confirmEndLesson()" disabled>合上书本</button>
+  </div>
+</header>
+
+<!-- Reconnect -->
+<div id="reconnectBanner">书页翻动，正在重新连接...</div>
+
+<main>
+  <!-- Left Menu -->
+  <nav class="left-menu" id="leftMenu">
+    <div class="menu-tabs" id="menuTabs">
+      <button class="menu-tab active" data-panel="wechat">
+        <span class="tab-icon">💬</span><span class="tab-label">微信</span>
+      </button>
+      <button class="menu-tab" data-panel="progress">
+        <span class="tab-icon">📖</span><span class="tab-label">进度</span>
+      </button>
+      <button class="menu-tab" data-panel="diary">
+        <span class="tab-icon">📝</span><span class="tab-label">日记</span>
+      </button>
+      <button class="menu-tab" data-panel="teachers">
+        <span class="tab-icon">👩‍🏫</span><span class="tab-label">老师</span>
+      </button>
+      <button class="menu-tab" data-panel="toc">
+        <span class="tab-icon">📚</span><span class="tab-label">目录</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Panel content drawer -->
+  <div class="panel-content-wrapper" id="panelContentWrapper">
+    <div class="panel-content-inner" id="panelContentInner">
+      <button class="panel-close-btn" onclick="closePanelContent()" title="合上">✕</button>
+      <div id="panelContent"><p style="color:var(--ink-dim)">选择查看</p></div>
+    </div>
+  </div>
+
+  <!-- Chat area -->
+  <div class="chat-panel">
+    <div id="chatMessages"></div>
+    <div class="input-area">
+      <textarea id="messageInput" rows="1" placeholder="提笔写下你的思考..." disabled></textarea>
+      <button id="sendBtn" onclick="sendMessage()" disabled>落笔</button>
+    </div>
+  </div>
+</main>
+
+<!-- Mobile panel toggle -->
+<button class="panel-mobile-toggle" id="panelMobileToggle">研习资料 ▲</button>
+
+<!-- Confirm end -->
+<div id="endConfirmOverlay" class="modal-overlay hidden">
+  <div class="modal-box">
+    <p>研习将尽。<br>确定合上书本吗？</p>
+    <div class="modal-buttons">
+      <button class="btn-cancel" onclick="hideEndConfirm()">再读一会</button>
+      <button class="btn-confirm" id="confirmEndBtn" onclick="endLesson()">合上书本</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let lessonState = null;
+let isStreaming = false;
+let timerInterval = null;
+let pollEndRetries = 0;
+const MAX_POLL_RETRIES = 60;
+
+const $ = (sel) => document.querySelector(sel);
+const chatMessages = $('#chatMessages');
+const messageInput = $('#messageInput');
+const sendBtn = $('#sendBtn');
+const endBtn = $('#endBtn');
+const startOverlay = $('#startOverlay');
+const startBtn = $('#startBtn');
+const startHint = $('#startHint');
+const reconnectBanner = $('#reconnectBanner');
+const endConfirmOverlay = $('#endConfirmOverlay');
+const teacherBadge = $('#teacherBadge');
+const panelContent = $('#panelContent');
+const panelContentWrapper = $('#panelContentWrapper');
+const panelCache = {};
+
+const teacherColors = {
+  march7: { accent: 'var(--march7)', glow: 'var(--march7-glow)' },
+  ganyu: { accent: 'var(--ganyu)', glow: 'var(--ganyu-glow)' },
+  keqing: { accent: 'var(--keqing)', glow: 'var(--keqing-glow)' },
+};
+
+messageInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+// ── Teacher theme ──
+function setTeacher(name) {
+  const c = teacherColors[name] || teacherColors.march7;
+  document.documentElement.style.setProperty('--accent', c.accent);
+  document.documentElement.style.setProperty('--accent-glow', c.glow);
+  teacherBadge.style.color = c.accent;
+  teacherBadge.style.background = c.glow;
+  sendBtn.style.background = `linear-gradient(135deg, ${c.accent}, color-mix(in srgb, ${c.accent} 75%, #3e3232))`;
+}
+
+// ── Timer ──
+function updateTimer() {
+  if (!lessonState?.lesson_started_at) return;
+  const elapsed = (Date.now() / 1000) - lessonState.lesson_started_at;
+  const remaining = Math.max(0, 50 * 60 - elapsed);
+  const mins = Math.floor(remaining / 60);
+  const secs = Math.floor(remaining % 60);
+  $('#timer').textContent = `${mins}:${String(secs).padStart(2, '0')}`;
+  if (remaining <= 300) { $('#timer').style.color = 'var(--danger)'; }
+}
+
+// ── Messages ──
+function addMessage(role, content, isStreaming = false) {
+  let el = chatMessages.querySelector('.message.streaming');
+  if (role === 'assistant' && isStreaming && el) {
+    el.innerHTML = renderContent(content);
+  } else {
+    el = document.createElement('div');
+    el.className = `message ${role}`;
+    if (role === 'assistant' && isStreaming) el.classList.add('streaming');
+    el.innerHTML = renderContent(content);
+    chatMessages.appendChild(el);
+  }
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function renderContent(text) {
+  return text
+    .replace(/\*\((.+?)\)\*/g, '<span class="inner-thought">（$1）</span>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
+// ── Init ──
+async function init() {
+  try {
+    const res = await fetch('/api/lesson/state');
+    const data = await res.json();
+    if (data.status === 'active') {
+      lessonState = {
+        teacher_name: data.teacher_name,
+        teacher_display: data.teacher_display,
+        lesson_started_at: data.lesson_started_at,
+      };
+      setTeacher(data.teacher_name);
+      teacherBadge.textContent = data.teacher_display;
+      teacherBadge.style.opacity = '1';
+      (data.messages || []).forEach(m => addMessage(m.role, m.content));
+      startOverlay.classList.add('hidden');
+      endBtn.disabled = false;
+      messageInput.disabled = false;
+      sendBtn.disabled = false;
+      timerInterval = setInterval(updateTimer, 1000);
+      updateTimer();
+      loadPanel('wechat');
+    } else {
+      startHint.innerHTML = data.next_teacher
+        ? `夜深了，港子。<br>下一位研习导师是 <span style="color:var(--gold);font-weight:600;">${data.next_teacher}</span>`
+        : '夜深了，港子。准备好开始研习了吗？';
+      startBtn.textContent = '翻开书页';
+    }
+  } catch (e) {
+    startHint.textContent = '书页破损……请确认服务已启动。';
+    startBtn.disabled = true;
+  }
+}
+init();
+
+// ── API ──
+async function startLesson() {
+  startBtn.disabled = true;
+  startBtn.textContent = '正在翻开书页...';
+  try {
+    const res = await fetch('/api/lesson/start', { method: 'POST' });
+    const data = await res.json();
+    if (data.conflict) { startBtn.disabled = false; startBtn.textContent = '翻开书页'; return; }
+    lessonState = {
+      teacher_name: data.teacher_name,
+      teacher_display: data.teacher_display,
+      lesson_started_at: Date.now() / 1000,
+    };
+    setTeacher(data.teacher_name);
+    teacherBadge.textContent = data.teacher_display;
+    teacherBadge.style.opacity = '1';
+    startOverlay.classList.add('hidden');
+    endBtn.disabled = false;
+    messageInput.disabled = false;
+    sendBtn.disabled = false;
+    addMessage('assistant', data.opening_message);
+    timerInterval = setInterval(updateTimer, 1000);
+    updateTimer();
+    loadPanel('wechat');
+  } catch (e) {
+    startBtn.disabled = false;
+    startBtn.textContent = '翻开书页';
+  }
+}
+
+async function sendMessage() {
+  const text = messageInput.value.trim();
+  if (!text || isStreaming) return;
+  addMessage('user', text);
+  messageInput.value = '';
+  messageInput.disabled = true;
+  sendBtn.disabled = true;
+  isStreaming = true;
+
+  addMessage('assistant', '', true);
+  let fullText = '';
+
+  try {
+    const res = await fetch('/api/lesson/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const event = JSON.parse(line.slice(6));
+          if (event.type === 'token') { fullText += event.text; addMessage('assistant', fullText, true); }
+          else if (event.type === 'done') {
+            fullText = event.full_text;
+            const el = chatMessages.querySelector('.message.streaming');
+            if (el) { el.classList.remove('streaming'); el.innerHTML = renderContent(fullText); }
+          }
+          else if (event.type === 'error') { addMessage('assistant', `⚠️ ${event.message}`); }
+        } catch (_) {}
+      }
+    }
+  } catch (e) {
+    addMessage('assistant', `书页散落: ${e.message}`);
+    reconnect();
+  }
+  isStreaming = false;
+  messageInput.disabled = false;
+  sendBtn.disabled = false;
+  messageInput.focus();
+}
+
+// ── End ──
+function confirmEndLesson() { endConfirmOverlay.classList.remove('hidden'); }
+function hideEndConfirm() { endConfirmOverlay.classList.add('hidden'); }
+
+async function endLesson() {
+  $('#confirmEndBtn').disabled = true;
+  $('#confirmEndBtn').textContent = '合上中...';
+  endBtn.disabled = true;
+  pollEndRetries = 0;
+  try {
+    const res = await fetch('/api/lesson/end', { method: 'POST' });
+    const data = await res.json();
+    if (data.conflict) { hideEndConfirm(); $('#confirmEndBtn').disabled = false; $('#confirmEndBtn').textContent = '合上书本'; endBtn.disabled = false; return; }
+    hideEndConfirm();
+    pollEndProgress(data.job_id);
+  } catch (e) {
+    hideEndConfirm();
+    $('#confirmEndBtn').disabled = false;
+    $('#confirmEndBtn').textContent = '合上书本';
+    endBtn.disabled = false;
+  }
+}
+
+async function pollEndProgress(jobId) {
+  if (pollEndRetries++ > MAX_POLL_RETRIES) {
+    addMessage('assistant', '笔记整理超时。请手动检查 teacher/ 文件，或刷新页面重试。');
+    resetAfterEnd();
+    return;
+  }
+  try {
+    const res = await fetch(`/api/lesson/end/progress/${jobId}`);
+    const data = await res.json();
+    if (data.status === 'processing') {
+      let el = chatMessages.querySelector('.message.polling');
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'message assistant polling';
+        el.textContent = '正在整理研习笔记...';
+        chatMessages.appendChild(el);
+      }
+      setTimeout(() => pollEndProgress(jobId), 2000);
+    } else if (data.status === 'done') {
+      const el = chatMessages.querySelector('.message.polling');
+      if (el) el.remove();
+      addMessage('assistant', '✦ 研习笔记已归档。晚安，港子。');
+      resetAfterEnd();
+    } else {
+      const el = chatMessages.querySelector('.message.polling');
+      if (el) el.remove();
+      addMessage('assistant', `笔记整理出了点问题: ${data.error || '未知'}`);
+      resetAfterEnd();
+    }
+  } catch (_) {
+    setTimeout(() => pollEndProgress(jobId), 2000);
+  }
+}
+
+function resetAfterEnd() {
+  endConfirmOverlay.classList.add('hidden');
+  endBtn.disabled = true;
+  messageInput.disabled = true;
+  sendBtn.disabled = true;
+  lessonState = null;
+  clearInterval(timerInterval);
+  $('#timer').textContent = '--:--';
+  $('#timer').style.color = 'rgba(255,255,255,0.7)';
+  $('#confirmEndBtn').disabled = false;
+  $('#confirmEndBtn').textContent = '合上书本';
+  teacherBadge.style.opacity = '0.5';
+  document.documentElement.style.setProperty('--accent', 'var(--march7)');
+  document.documentElement.style.setProperty('--accent-glow', 'var(--march7-glow)');
+  setTimeout(() => {
+    startOverlay.classList.remove('hidden');
+    startBtn.disabled = false;
+    startBtn.textContent = '翻开书页';
+    init();
+  }, 2500);
+}
+
+// ── Panels ──
+function closePanelContent() { panelContentWrapper.classList.remove('open'); }
+
+document.querySelectorAll('.menu-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    loadPanel(tab.dataset.panel);
+    if (window.innerWidth >= 768) {
+      panelContentWrapper.classList.add('open');
+    }
+  });
+});
+
+async function loadPanel(name) {
+  if (panelCache[name]) { panelContent.innerHTML = panelCache[name]; _injectPanelActions(name); return; }
+  panelContent.innerHTML = '<p style="color:var(--ink-dim)">翻阅中...</p>';
+  try {
+    const res = await fetch(`/api/panels/${name}`);
+    const data = await res.json();
+    panelCache[name] = data.html;
+    panelContent.innerHTML = data.html;
+    _injectPanelActions(name);
+  } catch (_) {
+    panelContent.innerHTML = '<p style="color:var(--danger)">翻阅失败</p>';
+  }
+}
+
+function _injectPanelActions(name) {
+  // Add "mark as read" button to wechat panel
+  if (name !== 'wechat') return;
+  if (panelContent.querySelector('.archive-wechat-btn')) return; // already injected
+  const btn = document.createElement('button');
+  btn.className = 'archive-wechat-btn';
+  btn.textContent = '标记已读 →';
+  btn.title = '将未读消息归档到群聊历史';
+  btn.onclick = archiveWechatUnread;
+  Object.assign(btn.style, {
+    display: 'block', width: '100%', marginTop: '12px', marginBottom: '8px',
+    padding: '8px 14px', fontSize: '13px', cursor: 'pointer',
+    fontFamily: 'inherit', fontWeight: '600',
+    border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
+    background: 'var(--surface)', color: 'var(--ink-dim)',
+    transition: 'all 0.2s',
+  });
+  btn.addEventListener('mouseenter', () => { btn.style.background = 'var(--surface-hover)'; btn.style.color = 'var(--ink)'; });
+  btn.addEventListener('mouseleave', () => { btn.style.background = 'var(--surface)'; btn.style.color = 'var(--ink-dim)'; });
+  panelContent.insertBefore(btn, panelContent.firstChild);
+}
+
+async function archiveWechatUnread() {
+  const btn = panelContent.querySelector('.archive-wechat-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '归档中...'; }
+  try {
+    const res = await fetch('/api/panels/wechat/archive', { method: 'POST' });
+    const data = await res.json();
+    if (data.archived) {
+      delete panelCache['wechat'];
+      await loadPanel('wechat');
+    } else if (data.success) {
+      btn.disabled = false; btn.textContent = '没有新消息';
+    }
+  } catch (_) {
+    if (btn) { btn.disabled = false; btn.textContent = '标记已读 →'; }
+  }
+}
+
+// Mobile panel toggle
+const panelMobileToggle = $('#panelMobileToggle');
+panelMobileToggle.addEventListener('click', () => {
+  panelContentWrapper.classList.toggle('open');
+  panelMobileToggle.textContent = panelContentWrapper.classList.contains('open') ? '研习资料 ▼' : '研习资料 ▲';
+});
+
+// ── Reconnect ──
+let reconnectAttempts = 0;
+function reconnect() {
+  reconnectBanner.classList.add('visible');
+  const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+  reconnectAttempts++;
+  setTimeout(async () => {
+    try {
+      const res = await fetch('/api/lesson/state');
+      const data = await res.json();
+      if (data.status === 'active') {
+        reconnectBanner.classList.remove('visible');
+        reconnectAttempts = 0;
+        chatMessages.innerHTML = '';
+        (data.messages || []).forEach(m => addMessage(m.role, m.content));
+        lessonState = {
+          teacher_name: data.teacher_name,
+          teacher_display: data.teacher_display,
+          lesson_started_at: data.lesson_started_at,
+        };
+        setTeacher(data.teacher_name);
+        teacherBadge.textContent = data.teacher_display;
+        teacherBadge.style.opacity = '1';
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+        endBtn.disabled = false;
+      } else { reconnect(); }
+    } catch (_) { reconnect(); }
+  }, delay);
+}
+</script>
+</body>
+</html>

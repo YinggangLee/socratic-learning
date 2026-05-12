@@ -1,0 +1,3 @@
+anthropic>=0.50.0
+tiktoken
+python-dotenv
