@@ -504,6 +504,9 @@ main {
       <button class="menu-tab" data-panel="toc">
         <span class="tab-icon">📚</span><span class="tab-label">目录</span>
       </button>
+      <button class="menu-tab" data-panel="textbooks">
+        <span class="tab-icon">📖</span><span class="tab-label">教材</span>
+      </button>
     </div>
   </nav>
 
@@ -535,6 +538,46 @@ main {
     <div class="modal-buttons">
       <button class="btn-cancel" onclick="hideEndConfirm()">再读一会</button>
       <button class="btn-confirm" id="confirmEndBtn" onclick="endLesson()">合上书本</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add textbook modal -->
+<div id="addTextbookOverlay" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:440px;text-align:left;">
+    <h3 style="color:var(--leather);margin-bottom:16px;">新增教材</h3>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label style="font-size:13px;color:var(--ink-dim);">教材名称 *</label>
+        <input id="tbName" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:2px;font-family:inherit;" placeholder="输入教材名称">
+      </div>
+      <div>
+        <label style="font-size:13px;color:var(--ink-dim);">来源类型 *</label>
+        <select id="tbSourceType" onchange="toggleSourceInput()" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:2px;font-family:inherit;">
+          <option value="file_md">Markdown 文件</option>
+          <option value="file_pdf">PDF 文件</option>
+          <option value="url">URL 导入</option>
+        </select>
+      </div>
+      <div id="tbFileGroup">
+        <label style="font-size:13px;color:var(--ink-dim);">选择文件 *</label>
+        <input type="file" id="tbFile" accept=".md,.pdf" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:2px;font-family:inherit;">
+      </div>
+      <div id="tbUrlGroup" style="display:none;">
+        <label style="font-size:13px;color:var(--ink-dim);">URL *</label>
+        <input id="tbUrl" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:2px;font-family:inherit;" placeholder="https://...">
+      </div>
+      <div>
+        <label style="font-size:13px;color:var(--ink-dim);">来源备注（选填）</label>
+        <input id="tbSourceRef" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:2px;font-family:inherit;" placeholder="来源说明">
+      </div>
+      <label style="font-size:13px;color:var(--ink-dim);display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="tbSetActive"> 导入成功后设为当前学习
+      </label>
+    </div>
+    <div class="modal-buttons" style="margin-top:16px;">
+      <button class="btn-cancel" onclick="hideAddTextbook()">取消</button>
+      <button class="btn-confirm" id="confirmAddTextbook" onclick="addTextbook()" style="background:var(--gold);">导入</button>
     </div>
   </div>
 </div>
@@ -609,7 +652,18 @@ function addMessage(role, content, isStreaming = false) {
 }
 
 function renderContent(text) {
-  return text
+  // 1. Escape all HTML to prevent XSS
+  let safe = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  // 2. Un-escape intentional span tags from teacher model output
+  // (only & < > are escaped above; " stays as ")
+  safe = safe
+    .replace(/&lt;span style="color: #999;"&gt;/g, '<span style="color: #999;">')
+    .replace(/&lt;\/span&gt;/g, '</span>');
+  // 3. Apply markdown transformations
+  return safe
     .replace(/\*\((.+?)\)\*/g, '<span class="inner-thought">（$1）</span>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\n/g, '<br>');
@@ -643,6 +697,7 @@ async function init() {
         : '夜深了，港子。准备好开始研习了吗？';
       startBtn.textContent = '翻开书页';
     }
+    _checkActiveTextbook();
   } catch (e) {
     startHint.textContent = '书页破损……请确认服务已启动。';
     startBtn.disabled = true;
@@ -778,11 +833,13 @@ async function pollEndProgress(jobId) {
       const el = chatMessages.querySelector('.message.polling');
       if (el) el.remove();
       addMessage('assistant', '✦ 研习笔记已归档。晚安，港子。');
+      await fetch('/api/lesson/clear', { method: 'POST' });
       resetAfterEnd();
     } else {
       const el = chatMessages.querySelector('.message.polling');
       if (el) el.remove();
       addMessage('assistant', `笔记整理出了点问题: ${data.error || '未知'}`);
+      await fetch('/api/lesson/clear', { method: 'POST' });
       resetAfterEnd();
     }
   } catch (_) {
@@ -812,6 +869,27 @@ function resetAfterEnd() {
   }, 2500);
 }
 
+async function _checkActiveTextbook() {
+  try {
+    const res = await fetch('/api/textbooks');
+    const data = await res.json();
+    if (!data.active_id) {
+      startBtn.disabled = true;
+      startBtn.textContent = '请选择教材';
+      startHint.innerHTML = '夜深了，港子。<br>请先在<a href="javascript:void(0)" onclick="openTextbookPanel()" style="color:var(--gold);text-decoration:underline;">教材面板</a>中选择一本教材。';
+    }
+  } catch (_) {}
+}
+
+function openTextbookPanel() {
+  startOverlay.classList.add('hidden');
+  document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+  const tab = document.querySelector('.menu-tab[data-panel="textbooks"]');
+  if (tab) { tab.classList.add('active'); }
+  loadPanel('textbooks');
+  if (window.innerWidth >= 768) panelContentWrapper.classList.add('open');
+}
+
 // ── Panels ──
 function closePanelContent() { panelContentWrapper.classList.remove('open'); }
 
@@ -827,6 +905,7 @@ document.querySelectorAll('.menu-tab').forEach(tab => {
 });
 
 async function loadPanel(name) {
+  if (name === 'textbooks') { await loadTextbookPanel(); return; }
   if (panelCache[name]) { panelContent.innerHTML = panelCache[name]; _injectPanelActions(name); return; }
   panelContent.innerHTML = '<p style="color:var(--ink-dim)">翻阅中...</p>';
   try {
@@ -877,6 +956,155 @@ async function archiveWechatUnread() {
   } catch (_) {
     if (btn) { btn.disabled = false; btn.textContent = '标记已读 →'; }
   }
+}
+
+// ── Textbook Panel ──
+
+let textbookData = null;
+let showDeletedTextbooks = false;
+
+async function loadTextbookPanel() {
+  panelContent.innerHTML = '<p style="color:var(--ink-dim)">翻阅中...</p>';
+  try {
+    const params = showDeletedTextbooks ? '?show_deleted=true' : '';
+    const res = await fetch(`/api/textbooks${params}`);
+    const data = await res.json();
+    textbookData = data;
+    panelContent.innerHTML = _renderTextbookList(data);
+  } catch (_) {
+    panelContent.innerHTML = '<p style="color:var(--danger)">加载失败</p>';
+  }
+}
+
+function _renderTextbookList(data) {
+  const textbooks = data.textbooks || [];
+  const activeId = data.active_id;
+  if (textbooks.length === 0) { return '<p style="color:var(--ink-dim)">暂无教材，请新增教材。</p>'; }
+  const inLesson = !!lessonState;
+  let html = '<div style="display:flex;gap:8px;margin-bottom:16px;">';
+  html += `<button onclick="showAddTextbook()" ${inLesson?'disabled':''} style="padding:8px 16px;border:1px solid var(--gold);border-radius:2px;background:var(--page-light);color:var(--leather);cursor:pointer;font-family:inherit;font-weight:600;${inLesson?'opacity:0.4;cursor:not-allowed;':''}">+ 新增教材</button>`;
+  html += `<label style="font-size:13px;color:var(--ink-dim);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" onchange="toggleShowDeleted(this.checked)" ${showDeletedTextbooks?'checked':''}> 显示已删除</label>`;
+  html += '</div>';
+  if (inLesson) html += '<p style="font-size:12px;color:var(--ink-faint);margin-bottom:12px;">🔒 请先结束当前课程再进行教材操作</p>';
+  for (const tb of textbooks) {
+    const isActive = tb.id === activeId;
+    const borderColor = isActive ? 'var(--gold)' : 'var(--border)';
+    const bg = isActive ? 'var(--gold-glow)' : 'var(--page-light)';
+    html += `<div style="border:1px solid ${borderColor};border-left:4px solid ${borderColor};border-radius:2px;padding:12px;margin-bottom:10px;background:${bg};">`;
+    html += `<div style="font-weight:700;color:var(--ink);margin-bottom:4px;">${_esc(tb.name)}`;
+    if (isActive) html += ' <span style="font-size:11px;color:var(--gold);">◀ 当前学习</span>';
+    html += `</div>`;
+    html += `<div style="font-size:12px;color:var(--ink-dim);">来源: ${_esc(tb.source_type)} ${tb.source_ref ? '— '+_esc(tb.source_ref) : ''}</div>`;
+    if (tb.import_status !== 'ready') {
+      html += `<div style="font-size:12px;color:var(--danger);margin-top:4px;">导入: ${_esc(tb.import_status)}${tb.import_error ? ' — '+_esc(tb.import_error) : ''}</div>`;
+      if (tb.import_status === 'failed') {
+        html += `<button onclick="retryImport('${tb.id}')" ${inLesson?'disabled':''} style="margin-top:6px;padding:4px 12px;font-size:12px;cursor:pointer;border:1px solid var(--border);border-radius:2px;font-family:inherit;background:var(--surface);${inLesson?'opacity:0.4;cursor:not-allowed;':''}">重试导入</button>`;
+      }
+    }
+    html += '<div style="margin-top:8px;display:flex;gap:6px;">';
+    if (tb.status === 'active') {
+      html += `<span style="font-size:12px;padding:4px 12px;background:var(--gold-glow);color:var(--gold);border-radius:2px;font-weight:600;">当前学习</span>`;
+    } else if (tb.status === 'inactive') {
+      html += `<button onclick="setActiveTextbook('${tb.id}')" ${inLesson||tb.import_status!=='ready'?'disabled':''} style="padding:4px 12px;font-size:12px;cursor:pointer;border:1px solid var(--gold);border-radius:2px;font-family:inherit;background:var(--page-light);color:var(--leather);font-weight:600;${(inLesson||tb.import_status!=='ready')?'opacity:0.4;cursor:not-allowed;':''}">开始学习</button>`;
+    } else if (tb.status === 'completed') {
+      html += `<button onclick="setActiveTextbook('${tb.id}')" ${inLesson?'disabled':''} style="padding:4px 12px;font-size:12px;cursor:pointer;border:1px solid var(--border);border-radius:2px;font-family:inherit;background:var(--surface);${inLesson?'opacity:0.4;cursor:not-allowed;':''}">继续复习</button>`;
+    } else if (tb.status === 'deleted') {
+      html += `<button onclick="restoreTextbook('${tb.id}')" ${inLesson?'disabled':''} style="padding:4px 12px;font-size:12px;cursor:pointer;border:1px solid var(--border);border-radius:2px;font-family:inherit;background:var(--surface);${inLesson?'opacity:0.4;cursor:not-allowed;':''}">恢复</button>`;
+    }
+    if (tb.status === 'inactive' || tb.status === 'completed' || tb.status === 'failed_import') {
+      html += `<button onclick="deleteTextbook('${tb.id}')" ${inLesson?'disabled':''} style="padding:4px 12px;font-size:12px;cursor:pointer;border:1px solid var(--danger);border-radius:2px;font-family:inherit;background:transparent;color:var(--danger);${inLesson?'opacity:0.4;cursor:not-allowed;':''}">删除</button>`;
+    }
+    html += '</div></div>';
+  }
+  return html;
+}
+
+function _esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function toggleShowDeleted(v) { showDeletedTextbooks = v; loadTextbookPanel(); }
+
+function showAddTextbook() { $('#addTextbookOverlay').classList.remove('hidden'); }
+function hideAddTextbook() { $('#addTextbookOverlay').classList.add('hidden'); }
+function toggleSourceInput() {
+  const t = $('#tbSourceType').value;
+  $('#tbFileGroup').style.display = (t === 'url') ? 'none' : 'block';
+  $('#tbUrlGroup').style.display = (t === 'url') ? 'block' : 'none';
+}
+
+async function addTextbook() {
+  const name = $('#tbName').value.trim();
+  const sourceType = $('#tbSourceType').value;
+  const setActive = $('#tbSetActive').checked;
+  const sourceRef = $('#tbSourceRef').value.trim();
+  if (!name) return alert('请输入教材名称');
+  const btn = $('#confirmAddTextbook');
+  btn.disabled = true; btn.textContent = '导入中...';
+  try {
+    const form = new FormData();
+    form.append('name', name);
+    form.append('source_type', sourceType);
+    form.append('set_active', setActive);
+    if (sourceRef) form.append('source_ref', sourceRef);
+    if (sourceType === 'url') {
+      form.append('url', $('#tbUrl').value.trim());
+    } else {
+      const fileInput = $('#tbFile');
+      if (fileInput.files.length > 0) form.append('file', fileInput.files[0]);
+    }
+    const res = await fetch('/api/textbooks', { method: 'POST', body: form });
+    const data = await res.json();
+    if (data.error) { alert(data.error); btn.disabled = false; btn.textContent = '导入'; return; }
+    hideAddTextbook();
+    if (data.status === 'active') { delete panelCache['toc']; delete panelCache['progress']; }
+    await loadTextbookPanel();
+  } catch (e) { alert('导入失败: ' + e.message); }
+  btn.disabled = false; btn.textContent = '导入';
+}
+
+async function setActiveTextbook(id) {
+  try {
+    const res = await fetch(`/api/textbooks/${id}/status`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({status:'active'}),
+    });
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    delete panelCache['toc']; delete panelCache['progress'];
+    await loadTextbookPanel();
+    init();
+  } catch(e) { alert('切换失败: '+e.message); }
+}
+
+async function deleteTextbook(id) {
+  if (!confirm('仅从列表隐藏，教材文件和学习进度会保留，可恢复。')) return;
+  try {
+    const res = await fetch(`/api/textbooks/${id}/status`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({status:'deleted'}),
+    });
+    await loadTextbookPanel();
+  } catch(e) { alert('删除失败: '+e.message); }
+}
+
+async function restoreTextbook(id) {
+  try {
+    await fetch(`/api/textbooks/${id}/restore`, { method: 'POST' });
+    await loadTextbookPanel();
+  } catch(e) { alert('恢复失败: '+e.message); }
+}
+
+async function retryImport(id) {
+  try {
+    await fetch(`/api/textbooks/${id}/retry-import`, { method: 'POST' });
+    await loadTextbookPanel();
+    // Poll for completion
+    setTimeout(async () => {
+      const res = await fetch(`/api/textbooks/${id}`);
+      const data = await res.json();
+      if (data.import_status === 'processing') setTimeout(() => retryImport(id), 3000);
+      else await loadTextbookPanel();
+    }, 3000);
+  } catch(e) { alert('重试失败: '+e.message); }
 }
 
 // Mobile panel toggle
