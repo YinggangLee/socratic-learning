@@ -5,6 +5,9 @@ from datetime import datetime, timezone
 
 def _slugify(text: str) -> str:
     raw = text.lower().strip()
+    # Strip file extension
+    if raw.endswith(".md"):
+        raw = raw[:-3]
     raw = re.sub(r'[^a-z0-9\s-]', '', raw)
     raw = re.sub(r'\s+', '-', raw)
     return raw.strip('-') or "untitled"
