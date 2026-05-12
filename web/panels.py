@@ -36,8 +36,8 @@ def _md_to_html(md: str) -> str:
     html = re.sub(r'`([^`]+)`', r'<code>\1</code>', html)
     # Horizontal rules
     html = re.sub(r'^---+$', '<hr>', html, flags=re.MULTILINE)
-    # Blockquotes
-    html = re.sub(r'^> (.+)$', r'<blockquote>\1</blockquote>', html, flags=re.MULTILINE)
+    # Blockquotes (after HTML escaping, > becomes &gt;)
+    html = re.sub(r'^&gt; (.+)$', r'<blockquote>\1</blockquote>', html, flags=re.MULTILINE)
     # List items
     html = re.sub(r'^- (.+)$', r'<li>\1</li>', html, flags=re.MULTILINE)
     # Wrap consecutive <li> in <ul>
@@ -113,12 +113,11 @@ def render_wechat() -> str:
 
 
 def render_progress() -> str:
-    """Render current learning progress."""
-    progress_dir = TEACHER_DIR / "progress"
-    if progress_dir.exists():
-        for f in progress_dir.iterdir():
-            if f.suffix == ".md":
-                return _md_to_html(_read(f))
+    """Render current learning progress from active textbook's progress_path."""
+    from prompt_builder import _get_active_progress
+    progress_file, _ = _get_active_progress()
+    if progress_file and progress_file.exists():
+        return _md_to_html(_read(progress_file))
     return "<p>暂无进度记录</p>"
 
 
@@ -146,8 +145,9 @@ def render_teachers() -> str:
 
 def render_toc() -> str:
     """Render textbook table of contents."""
-    from config import TEXTBOOK_PATH
-    text = _read(TEXTBOOK_PATH)
+    from config import get_active_textbook
+    textbook_path, _ = get_active_textbook()
+    text = _read(textbook_path)
     if not text:
         return "<p>教材未找到</p>"
     # Extract headings as TOC

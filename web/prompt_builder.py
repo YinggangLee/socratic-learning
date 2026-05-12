@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from config import TEACHER_DIR, TEXTBOOK_PATH, TEACHER_NAMES, TEACHER_DISPLAY
+from config import TEACHER_DIR, get_active_textbook, TEXTBOOK_DIR, TEACHER_NAMES, TEACHER_DISPLAY
 from token_budget import budget_check, estimate_tokens
 
 
@@ -12,14 +12,17 @@ def _read(path: Path) -> str:
 
 
 def _get_active_progress() -> tuple[Path | None, str]:
-    """Return (progress_file_path, textbook_name) for the active textbook."""
+    """Return (progress_file_path, textbook_name) for the active textbook.
+    Uses store's explicit progress_path, falls back to first .md in progress/"""
+    _, progress_path = get_active_textbook()
+    if progress_path and progress_path.exists():
+        return progress_path, progress_path.stem.replace("-", " ").title()
     progress_dir = TEACHER_DIR / "progress"
-    # Walk progress directory to find any .md file (single-textbook system for now)
-    if progress_dir.exists():
-        for f in progress_dir.iterdir():
-            if f.suffix == ".md":
-                textbook_name = f.stem.replace("-", " ").title()
-                return f, textbook_name
+    if not progress_dir.exists():
+        return None, ""
+    for f in sorted(progress_dir.iterdir()):
+        if f.suffix == ".md":
+            return f, f.stem.replace("-", " ").title()
     return None, ""
 
 
@@ -61,7 +64,8 @@ def _summarize_recent(filepath: Path, max_chars: int = 2000) -> str:
 
 def _extract_textbook_section(progress_text: str) -> str:
     """Extract the textbook section relevant to current progress."""
-    textbook = _read(TEXTBOOK_PATH)
+    textbook_path, _ = get_active_textbook()
+    textbook = _read(textbook_path)
     if not textbook:
         return "（教材未找到）"
 

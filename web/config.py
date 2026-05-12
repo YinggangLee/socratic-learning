@@ -7,8 +7,30 @@ load_dotenv(Path(__file__).parent / ".env")
 
 BASE_DIR = Path(__file__).parent.parent
 TEACHER_DIR = BASE_DIR / "teacher"
-TEXTBOOK_PATH = BASE_DIR / "textbook" / "building-effective-agents.md"
+TEXTBOOK_DIR = BASE_DIR / "textbook"
 WEB_DIR = Path(__file__).parent
+
+
+def get_active_textbook() -> tuple[Path | None, Path | None]:
+    """Return (content_path, progress_path) from the active textbook in registry.
+    Falls back to building-effective-agents.md for legacy compatibility."""
+    from textbook_store import get_store
+    store = get_store()
+    content, progress = store.get_active_paths()
+    if content and progress:
+        cp = BASE_DIR / content
+        pp = BASE_DIR / progress
+        if cp.exists():
+            return cp, pp
+    # Legacy fallback
+    default = TEXTBOOK_DIR / "building-effective-agents.md"
+    if default.exists():
+        return default, None
+    return None, None
+
+
+_content_path, _ = get_active_textbook()
+TEXTBOOK_PATH = _content_path  # kept for import-time compatibility
 CONVERSATIONS_DIR = WEB_DIR / "conversations"
 BACKUPS_DIR = WEB_DIR / "backups"
 ACTIVE_SESSION_FILE = CONVERSATIONS_DIR / "active_session.json"
