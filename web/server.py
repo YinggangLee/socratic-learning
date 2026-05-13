@@ -299,6 +299,15 @@ async def list_textbooks(show_deleted: bool = False):
     }
 
 
+@app.get("/api/textbooks/registry.md")
+async def get_registry_md():
+    from config import TEXTBOOK_DIR
+    md_path = TEXTBOOK_DIR / "textbook_registry.md"
+    if md_path.exists():
+        return {"markdown": md_path.read_text(encoding="utf-8")}
+    return {"markdown": ""}
+
+
 @app.get("/api/textbooks/{textbook_id}")
 async def get_textbook(textbook_id: str):
     store = get_store()
@@ -320,56 +329,68 @@ async def create_textbook(
     store = get_store()
     from config import BASE_DIR
 
-    content_path, progress_path = create_textbook_dirs(name, BASE_DIR)
+    # Generate a record to get the final ID (with conflict resolution)
+    record = store.add(
+        name=name, source_type=source_type, source_ref=source_ref or "",
+        content_path="__pending__", progress_path="__pending__",
+        import_status=ImportStatus.pending,
+    )
+    final_id = record.id
+    content_path, progress_path = create_textbook_dirs(name, BASE_DIR, override_id=final_id)
+    # Update record with actual paths
+    store._update_field(final_id, "content_path", str(content_path.relative_to(BASE_DIR)))
+    store._update_field(final_id, "progress_path", str(progress_path.relative_to(BASE_DIR)))
 
     if source_type == "file_md" and file:
-        import tempfile, shutil
-        src = content_path.parent / f"_tmp_{file.filename}"
+        safe_filename = Path(file.filename or "upload.md").name
+        src = content_path.parent / f"_tmp_{safe_filename}"
         with open(src, "wb") as f:
             f.write(await file.read())
         success = import_markdown_file(src, content_path)
         src.unlink(missing_ok=True)
         if not success:
             content_path.unlink(missing_ok=True)
+            progress_path.unlink(missing_ok=True)
+            store._update_field(final_id, "import_error", "文件为空或无效")
+            store.set_import_error(final_id, "文件为空或无效")
             return {"error": "文件为空或无效"}
-        record = store.add(
-            name=name, source_type=source_type, source_ref=source_ref or file.filename,
-            content_path=str(content_path.relative_to(BASE_DIR)),
-            progress_path=str(progress_path.relative_to(BASE_DIR)),
-            import_status=ImportStatus.ready,
-        )
+        store._update_field(final_id, "source_ref", source_ref or safe_filename)
+        if not source_ref:
+            store._update_field(final_id, "source_ref", source_ref or safe_filename)
+        store.set_import_ready(final_id)
     elif source_type == "file_pdf" and file:
         from config import TEXTBOOK_DIR
+        safe_filename = Path(file.filename or "upload.pdf").name
         original_dir = TEXTBOOK_DIR / "originals"
         pdf_bytes = await file.read()
-        original_path = save_uploaded_pdf(pdf_bytes, original_dir, file.filename or "upload.pdf")
-        record = store.add(
-            name=name, source_type=source_type, source_ref=source_ref or file.filename,
-            content_path=str(content_path.relative_to(BASE_DIR)),
-            progress_path=str(progress_path.relative_to(BASE_DIR)),
-            original_path=str(original_path.relative_to(BASE_DIR)),
-            import_status=ImportStatus.processing,
-        )
-        # Start background import
+        original_path = save_uploaded_pdf(pdf_bytes, original_dir, safe_filename)
+        store._update_field(final_id, "original_path", str(original_path.relative_to(BASE_DIR)))
+        store._update_field(final_id, "source_ref", source_ref or safe_filename)
+        store.set_import_processing(final_id)
         import asyncio
-        asyncio.create_task(_run_pdf_import(record.id, original_path, content_path, name))
+        asyncio.create_task(_run_pdf_import(final_id, original_path, content_path, name))
     elif source_type == "url":
         if not url:
+            store._update_field(final_id, "import_error", "URL 为空")
+            store.set_import_error(final_id, "URL 为空")
             return {"error": "URL 导入需要提供 url 参数"}
-        record = store.add(
-            name=name, source_type=source_type, source_ref=url,
-            content_path=str(content_path.relative_to(BASE_DIR)),
-            progress_path=str(progress_path.relative_to(BASE_DIR)),
-            import_status=ImportStatus.processing,
-        )
+        store._update_field(final_id, "source_ref", url)
+        store.set_import_processing(final_id)
         import asyncio
-        asyncio.create_task(_run_url_import(record.id, url, content_path, name))
+        asyncio.create_task(_run_url_import(final_id, url, content_path, name))
     else:
+        store._update_field(final_id, "import_error", f"不支持的来源类型: {source_type}")
+        store.set_import_error(final_id, f"不支持的来源类型: {source_type}")
         return {"error": f"不支持的来源类型: {source_type}"}
 
-    if set_active and record.import_status == ImportStatus.ready:
-        store.set_active(record.id)
-        record = store.get(record.id)
+    if set_active:
+        record = store.get(final_id)
+        if record.import_status == ImportStatus.ready:
+            store.set_active(final_id)
+        elif record.import_status == ImportStatus.processing:
+            store.mark_pending_activation(final_id)
+
+    record = store.get(final_id)
     return record.model_dump()
 
 
@@ -459,15 +480,6 @@ async def retry_import(textbook_id: str):
     else:
         return {"error": "此教材类型不支持重试导入"}
     return {"status": "processing"}
-
-
-@app.get("/api/textbooks/registry.md")
-async def get_registry_md():
-    from config import TEXTBOOK_DIR
-    md_path = TEXTBOOK_DIR / "textbook_registry.md"
-    if md_path.exists():
-        return {"markdown": md_path.read_text(encoding="utf-8")}
-    return {"markdown": ""}
 
 
 # ── 静态文件 ──

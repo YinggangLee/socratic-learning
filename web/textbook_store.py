@@ -9,6 +9,7 @@ class TextbookStore:
     def __init__(self, registry_path: Path):
         self._registry_path = registry_path
         self._data: dict = {"textbooks": [], "active_textbook_id": None}
+        self._pending_activation: set[str] = set()
         if registry_path.exists():
             self._load()
         else:
@@ -96,10 +97,16 @@ class TextbookStore:
         self._update_field(textbook_id, "import_status", ImportStatus.failed.value)
         self._save()
 
+    def mark_pending_activation(self, textbook_id: str):
+        self._pending_activation.add(textbook_id)
+
     def set_import_ready(self, textbook_id: str):
         self._update_field(textbook_id, "import_status", ImportStatus.ready.value)
         self._update_field(textbook_id, "import_error", None)
         self._save()
+        if textbook_id in self._pending_activation:
+            self._pending_activation.discard(textbook_id)
+            self.set_active(textbook_id)
 
     def set_import_processing(self, textbook_id: str):
         self._update_field(textbook_id, "import_status", ImportStatus.processing.value)

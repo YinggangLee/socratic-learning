@@ -9,14 +9,18 @@ def slugify_name(name: str) -> str:
     return raw.strip('-') or "untitled"
 
 
-def create_textbook_dirs(name: str, base_dir: Path) -> tuple[Path, Path]:
+def create_textbook_dirs(name: str, base_dir: Path, override_id: str = "") -> tuple[Path, Path]:
     """Create content_path and progress_path for a new textbook.
+    Writes an initial progress template to the progress_path.
     Returns (content_path, progress_path)."""
-    tid = slugify_name(name)
+    tid = override_id or slugify_name(name)
     content_path = base_dir / "textbook" / "imported" / f"{tid}.md"
     progress_path = base_dir / "teacher" / "progress" / f"{tid}.md"
     content_path.parent.mkdir(parents=True, exist_ok=True)
     progress_path.parent.mkdir(parents=True, exist_ok=True)
+    # Write initial progress template
+    template = f"# 学习进度 — {name}\n\n| 日期 | 课节 | 授课老师 | 内容 | 掌握情况 |\n|------|------|----------|------|----------|\n\n当前章节：待开始\n\n下一位授课老师：三月七\n"
+    progress_path.write_text(template, encoding="utf-8")
     return content_path, progress_path
 
 

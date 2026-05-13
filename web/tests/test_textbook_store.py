@@ -120,3 +120,13 @@ class TestTextbookStore:
         tmp_store.set_import_error(r.id, "bad")
         assert tmp_store.get(r.id).import_status == ImportStatus.failed
         assert tmp_store.get(r.id).import_error == "bad"
+
+    def test_pending_activation_on_import_ready(self, tmp_store):
+        r = tmp_store.add(name="Pend", source_type="url",
+                          content_path="p.md", progress_path="pp.md",
+                          import_status=ImportStatus.processing)
+        tmp_store.mark_pending_activation(r.id)
+        tmp_store.set_import_ready(r.id)
+        assert tmp_store.get(r.id).import_status == ImportStatus.ready
+        assert tmp_store.get(r.id).status == TextbookStatus.active
+        assert tmp_store.get_active_id() == r.id
