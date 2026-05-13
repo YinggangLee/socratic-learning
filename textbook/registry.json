@@ -1,13 +1,13 @@
 {
   "textbooks": [
     {
-      "id": "building-effective-agentsmd",
+      "id": "building-effective-agents",
       "name": "Building Effective Agents",
       "content_path": "textbook/building-effective-agents.md",
       "source_type": "url",
       "source_ref": "https://www.anthropic.com/engineering/building-effective-agents",
       "original_path": null,
-      "progress_path": "teacher/progress/building-effective-agentsmd.md",
+      "progress_path": "teacher/progress/building-effective-agents.md",
       "status": "inactive",
       "import_status": "ready",
       "import_error": null,
@@ -15,75 +15,19 @@
       "last_studied_at": null
     },
     {
-      "id": "01-introduction-to-agentsmd",
-      "name": "Introduction to Agents",
+      "id": "google-ai-agent-whitepapers",
+      "name": "Google AI Agent Whitepapers",
       "content_path": "textbook/google-ai-agent-whitepapers/01-introduction-to-agents.md",
       "source_type": "file_md",
       "source_ref": null,
       "original_path": null,
-      "progress_path": "teacher/progress/01-introduction-to-agentsmd.md",
+      "progress_path": "teacher/progress/google-ai-agent-whitepapers.md",
       "status": "active",
-      "import_status": "ready",
-      "import_error": null,
-      "created_at": "2026-05-12T16:01:26.783016+00:00",
-      "last_studied_at": null
-    },
-    {
-      "id": "02-agent-tools-mcpmd",
-      "name": "Agent Tools & MCP",
-      "content_path": "textbook/google-ai-agent-whitepapers/02-agent-tools-mcp.md",
-      "source_type": "file_md",
-      "source_ref": null,
-      "original_path": null,
-      "progress_path": "teacher/progress/02-agent-tools-mcpmd.md",
-      "status": "inactive",
-      "import_status": "ready",
-      "import_error": null,
-      "created_at": "2026-05-12T16:01:26.783016+00:00",
-      "last_studied_at": null
-    },
-    {
-      "id": "03-context-engineering-sessions-memorymd",
-      "name": "Context Engineering: Sessions & Memory",
-      "content_path": "textbook/google-ai-agent-whitepapers/03-context-engineering-sessions-memory.md",
-      "source_type": "file_md",
-      "source_ref": null,
-      "original_path": null,
-      "progress_path": "teacher/progress/03-context-engineering-sessions-memorymd.md",
-      "status": "inactive",
-      "import_status": "ready",
-      "import_error": null,
-      "created_at": "2026-05-12T16:01:26.783016+00:00",
-      "last_studied_at": null
-    },
-    {
-      "id": "04-agent-qualitymd",
-      "name": "Agent Quality",
-      "content_path": "textbook/google-ai-agent-whitepapers/04-agent-quality.md",
-      "source_type": "file_md",
-      "source_ref": null,
-      "original_path": null,
-      "progress_path": "teacher/progress/04-agent-qualitymd.md",
-      "status": "inactive",
-      "import_status": "ready",
-      "import_error": null,
-      "created_at": "2026-05-12T16:01:26.783016+00:00",
-      "last_studied_at": null
-    },
-    {
-      "id": "05-prototype-to-productionmd",
-      "name": "Prototype to Production",
-      "content_path": "textbook/google-ai-agent-whitepapers/05-prototype-to-production.md",
-      "source_type": "file_md",
-      "source_ref": null,
-      "original_path": null,
-      "progress_path": "teacher/progress/05-prototype-to-productionmd.md",
-      "status": "inactive",
       "import_status": "ready",
       "import_error": null,
       "created_at": "2026-05-12T16:01:26.783016+00:00",
       "last_studied_at": null
     }
   ],
-  "active_textbook_id": "01-introduction-to-agentsmd"
+  "active_textbook_id": "google-ai-agent-whitepapers"
 }

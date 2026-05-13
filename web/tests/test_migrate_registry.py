@@ -40,6 +40,26 @@ def test_migrate_directory_textbook(tmp_path):
     data = json.loads(json_path.read_text())
     assert data["active_textbook_id"] == "google-ai-agent-whitepapers"
     assert "01-intro.md" in data["textbooks"][0]["content_path"]
+    # Progress stem uses directory name, not first chapter filename
+    assert data["textbooks"][0]["progress_path"] == "teacher/progress/google-ai-agent-whitepapers.md"
+
+
+def test_active_progress_returns_none_when_path_missing(tmp_path, monkeypatch):
+    """If registry's active progress_path doesn't exist, return None — no silent fallback."""
+    import prompt_builder
+    from config import BASE_DIR
+
+    fake_progress = tmp_path / "nonexistent.md"
+    # Should not exist
+    assert not fake_progress.exists()
+
+    def fake_get_active_textbook():
+        return (BASE_DIR / "textbook" / "building-effective-agents.md", fake_progress)
+
+    monkeypatch.setattr(prompt_builder, "get_active_textbook", fake_get_active_textbook)
+    path, name = prompt_builder._get_active_progress()
+    assert path is None
+    assert name == ""
 
 
 def test_migrate_skips_inactive_correctly(tmp_path):

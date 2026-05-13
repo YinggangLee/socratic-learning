@@ -13,10 +13,15 @@ def _read(path: Path) -> str:
 
 def _get_active_progress() -> tuple[Path | None, str]:
     """Return (progress_file_path, textbook_name) for the active textbook.
-    Uses store's explicit progress_path, falls back to first .md in progress/"""
+    In registry mode: must use the exact progress_path — no silent fallback.
+    In legacy mode (no registry): fallback to first .md in progress/."""
     _, progress_path = get_active_textbook()
-    if progress_path and progress_path.exists():
-        return progress_path, progress_path.stem.replace("-", " ").title()
+    if progress_path is not None:
+        # Registry mode: explicit path. Must exist or it's an error.
+        if progress_path.exists():
+            return progress_path, progress_path.stem.replace("-", " ").title()
+        return None, ""
+    # Legacy fallback (no registry / no active record)
     progress_dir = TEACHER_DIR / "progress"
     if not progress_dir.exists():
         return None, ""
