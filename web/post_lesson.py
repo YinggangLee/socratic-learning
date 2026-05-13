@@ -83,6 +83,8 @@ async def run_post_lesson_pipeline(
     diary_text = current_files.get("diary", "")
     wechat_text = current_files.get("wechat_unread", "")
     persona_text = current_files.get("teacher_persona", "")
+    archive_text = current_files.get("session_archive", "")
+    revision_text = current_files.get("book_revision_notes", "")
 
     prompt = _build_update_prompt(
         teacher_display=teacher_display,
@@ -91,6 +93,8 @@ async def run_post_lesson_pipeline(
         diary_text=diary_text,
         wechat_text=wechat_text,
         persona_text=persona_text,
+        archive_text=archive_text,
+        revision_text=revision_text,
     )
 
     # Call Claude to generate updates (with retry)
@@ -141,6 +145,7 @@ async def run_post_lesson_pipeline(
             backed_up.append((path, backup_path))
 
     # Write and validate each file
+    APPEND_KEYS = {"session_archive", "book_revision_notes"}
     updated = []
     for fdef in POST_LESSON_FILES:
         key = fdef["key"]
@@ -150,7 +155,14 @@ async def run_post_lesson_pipeline(
             continue
 
         try:
-            path.write_text(new_content, encoding="utf-8")
+            if key in APPEND_KEYS:
+                existing = path.read_text(encoding="utf-8") if path.exists() else ""
+                if existing and not existing.endswith("\n"):
+                    existing += "\n"
+                content_to_write = existing + new_content
+            else:
+                content_to_write = new_content
+            path.write_text(content_to_write, encoding="utf-8")
             if fdef["validate"](new_content):
                 updated.append(key)
                 logger.info(f"✓ 已更新 {path.name}")
@@ -179,10 +191,10 @@ def _format_conversation(messages: list[dict]) -> str:
     return "\n\n".join(parts)
 
 
-def _build_update_prompt(teacher_display, conversation_text, progress_text, diary_text, wechat_text, persona_text) -> str:
+def _build_update_prompt(teacher_display, conversation_text, progress_text, diary_text, wechat_text, persona_text, archive_text="", revision_text="") -> str:
     return f"""你是苏格拉底·七家教系统的课后更新助手。刚刚结束了一节课，授课老师是{teacher_display}。
 
-请根据以下对话内容，生成 6 个文件的更新内容。以 JSON 格式返回，每个字段包含文件的新完整内容。
+请根据以下对话内容，生成 6 个文件的更新内容。以 JSON 格式返回，每个字段包含文件的新完整内容（session_archive 和 book_revision_notes 只返回本节需要追加的新内容，不包含历史）。
 
 ## 对话记录
 {conversation_text}
@@ -201,6 +213,12 @@ def _build_update_prompt(teacher_display, conversation_text, progress_text, diar
 ### 授课老师人设
 {persona_text[:1000]}
 
+### session_archive.md（已有历史内容，仅返回本节追加部分）
+{archive_text[:500]}
+
+### book_revision_notes.md（已有历史内容，仅返回本节追加部分）
+{revision_text[:500]}
+
 ## 输出格式
 
 返回一个 JSON 对象，包含以下字段：
@@ -208,8 +226,8 @@ def _build_update_prompt(teacher_display, conversation_text, progress_text, diar
 ```json
 {{
   "progress": "完整的 progress.md 新内容...",
-  "session_archive": "归档追加的内容...",
-  "book_revision_notes": "教材改进点...",
+  "session_archive": "仅本节需要追加的归档内容...",
+  "book_revision_notes": "仅本节新发现的教材改进点...",
   "diary": "完整的 diary.md 新内容...",
   "wechat_unread": "完整的 wechat_unread.md 新内容...",
   "teacher_persona": "完整的教师人设新内容..."
@@ -218,8 +236,8 @@ def _build_update_prompt(teacher_display, conversation_text, progress_text, diar
 
 **更新规则：**
 1. progress: 更新学习进度表，新增本节课记录，更新"当前章节"和"下一位授课老师"
-2. session_archive: 将陈旧进度记录转移归档，追加到现有内容后面
-3. book_revision_notes: 如果本节课暴露了教材的改进点则记录
+2. session_archive: 仅返回本节课需要追加的归档条目（系统会自动追加到文件末尾）
+3. book_revision_notes: 仅返回本节课新发现的教材改进点（系统会自动追加到文件末尾），无新发现则返回空字符串
 4. diary: 以"我"（港子）的视角写一篇生活化日记，细腻情感，300-500字
 5. wechat_unread: 三位女生围绕课堂内容在微信群闲聊，符合各人设，使用 **角色名：消息** 格式
 6. teacher_persona: 更新授课老师"与我的关系"部分中的"当前的内心态度"

@@ -2,6 +2,8 @@
 web/backups/
 web/conversations/
 web/server.log
+web/.pytest_cache/
+web/tests/__pycache__/
 __pycache__/
 *.pyc
 .DS_Store
