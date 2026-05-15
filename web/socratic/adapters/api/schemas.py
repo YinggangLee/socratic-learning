@@ -1,4 +1,5 @@
 """FastAPI-specific Pydantic schemas (adapters layer)."""
+
 from pydantic import BaseModel
 
 

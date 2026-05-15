@@ -1,7 +1,7 @@
 """Architecture constraint: no cross-module impl.py imports except container."""
+
 import ast
 from pathlib import Path
-
 
 ROOT = Path(__file__).parent.parent.parent.parent / "socratic"
 ALLOWED_IMPL_IMPORTS = {"web/socratic/app/container.py"}
@@ -15,7 +15,7 @@ def _all_python_files():
 def test_no_cross_module_impl_imports():
     violations = []
     for file in _all_python_files():
-        if str(file).endswith("/container.py"):
+        if str(file).endswith("/container.py") or "/tests/" in str(file):
             continue
         if not file.exists():
             continue

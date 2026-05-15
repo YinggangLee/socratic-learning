@@ -1,5 +1,6 @@
 from typing import Protocol
-from .models import LessonSession, ChatMessage, EndJobStatus
+
+from .models import EndJobStatus, LessonSession
 
 
 class LessonSessionRepository(Protocol):
@@ -24,3 +25,5 @@ class LessonManager(Protocol):
     def get_end_job(self) -> EndJobStatus | None: ...
 
     def has_ended(self) -> bool: ...
+
+    def close_session(self) -> None: ...

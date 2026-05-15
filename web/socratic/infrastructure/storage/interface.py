@@ -1,5 +1,5 @@
-from typing import Protocol
 from pathlib import Path
+from typing import Protocol
 
 
 class FileStorage(Protocol):

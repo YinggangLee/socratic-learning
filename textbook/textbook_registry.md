@@ -7,8 +7,8 @@
 | 教材名称 | 路径 | 来源 | 状态 |
 |----------|------|------|------|
 | Building Effective Agents | textbook/building-effective-agents.md | URL: https://www.anthropic.com/engineering/building-effective-agents | inactive |
-| Introduction to Agents | textbook/google-ai-agent-whitepapers/01-introduction-to-agents.md | PDF: Google × Kaggle (Day 1) | active |
-| Agent Tools & MCP | textbook/google-ai-agent-whitepapers/02-agent-tools-mcp.md | PDF: Google × Kaggle (Day 2) | inactive |
+| Introduction to Agents | textbook/google-ai-agent-whitepapers/01-introduction-to-agents.md | PDF: Google × Kaggle (Day 1) | completed |
+| Agent Tools & MCP | textbook/google-ai-agent-whitepapers/02-agent-tools-mcp.md | PDF: Google × Kaggle (Day 2) | active |
 | Context Engineering: Sessions & Memory | textbook/google-ai-agent-whitepapers/03-context-engineering-sessions-memory.md | PDF: Google × Kaggle (Day 3) | inactive |
 | Agent Quality | textbook/google-ai-agent-whitepapers/04-agent-quality.md | PDF: Google × Kaggle (Day 4) | inactive |
 | Prototype to Production | textbook/google-ai-agent-whitepapers/05-prototype-to-production.md | PDF: Google × Kaggle (Day 5) | inactive |

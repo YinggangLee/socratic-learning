@@ -1,9 +1,13 @@
 .env
+.venv/
+.claude/
+.codex/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.pyc
 web/backups/
 web/conversations/
 web/server.log
-web/.pytest_cache/
-web/tests/__pycache__/
-__pycache__/
-*.pyc
 .DS_Store

@@ -1,3 +1,3 @@
-from .interface import PanelRenderer, PanelQueryService
+from .interface import PanelQueryService, PanelRenderer
 
-__all__ = ["PanelRenderer", "PanelQueryService"]
+__all__ = ["PanelQueryService", "PanelRenderer"]

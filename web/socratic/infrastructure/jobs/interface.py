@@ -1,4 +1,5 @@
-from typing import Protocol, Callable, Awaitable
+from collections.abc import Awaitable, Callable
+from typing import Protocol
 
 
 class JobRunner(Protocol):

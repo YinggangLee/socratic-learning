@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 
 
@@ -23,13 +23,13 @@ class TextbookRecord:
     name: str
     content_path: str
     source_type: str
+    progress_path: str
     source_ref: str | None = None
     original_path: str | None = None
-    progress_path: str
     status: TextbookStatus = TextbookStatus.inactive
     import_status: ImportStatus = ImportStatus.pending
     import_error: str | None = None
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     last_studied_at: str | None = None
 
 

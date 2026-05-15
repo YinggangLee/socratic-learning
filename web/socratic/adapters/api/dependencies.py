@@ -1,4 +1,5 @@
 """FastAPI dependency injection — get services from app.state.container."""
+
 from fastapi import Request
 
 

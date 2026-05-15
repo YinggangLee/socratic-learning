@@ -3,6 +3,7 @@ from typing import Protocol
 
 class PanelRenderer(Protocol):
     def render(self, name: str) -> str: ...
+
     # Returns HTML for panel name: wechat, progress, diary, teachers, toc
 
 
